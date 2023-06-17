@@ -1,31 +1,35 @@
-version: "3.8"
-services:
-    mongodb:
-        image: "mongo"
-        volumes:
-            - data:/data/db
+version: "3.8" # wersja docker compose'a
+services: # lista kontenerów do stworzenia
+    mongodb: # kontener mongodb
+        image: "mongo" # obraz na podstawie którego będzie bazował kontener
+        volumes: # lista podpiętych wolumenów
+            - ./data:/data/db # dołączenie folderu data, do ścieżki /data/db w kontenrze aby zachować dane pomiędzy uruchomieniami
+        networks: # lista sieci do których ma być podłączony kontener
+            - backend
 
     backend:
-        build: ./backend
-        ports:
-            - "5000:5000"
+        build: ./backend # użycie dockerfile'a z folderu backend
+        ports: # przypisanie portów
+            - "5000:5000" # przypisanie portu 5000 hosta do portu 5000 dockera
         volumes:
-            - logs:/app/logs
-            - ./backend:/app
-            - /app/node_modules
-        depends_on:
-            - mongodb
+            - ./backend:/app # przypisanie folderu backend do ścieżki /app w kontenerze
+            - /app/node_modules # stworzenie woluminu node_modules z obrazu stworzonego przez dockerfile'a
+        depends_on: # wskazanie na kontener, który powinien zostać uruchomiony przed tym konetenerem
+            - mongodb # wskazanie na mongodb
+        networks:
+            - backend
+            - frontend
 
     frontend:
-        build: ./frontend
+        build: ./frontend # użycie dockerfile'a z folderu frontend
         ports:
-            - "3000:3000"
+            - "3000:3000" # przypisanie portu 3000 hosta do portu 3000 dockera
         volumes:
-            - ./frontend/src:/app/src
-        stdin_open: true
-        tty: true
+            - ./frontend/src:/app/src # przypisanie folder ./frontend/src do /app/src
         depends_on:
             - backend
-volumes:
-    data:
-    logs:
+        networks:
+            - frontend
+networks:
+    backend:
+    frontend:
